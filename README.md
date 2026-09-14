@@ -3,7 +3,7 @@
 iPhone に保存済みの「黒板が焼き込まれた工事写真」を選び、並べ替え・施工区分の付与をして、
 **写真3枚/ページの工事写真帳PDF**を生成し、メールで送付するための PWA アプリです。
 
-公開URL: https://nsmtysak.github.io/koji-photo-app/
+公開URL: https://nsmtysak.github.io/koji-photo-koyoh/
 
 ## 使い方（基本の流れ）
 

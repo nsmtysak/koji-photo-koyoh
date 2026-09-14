@@ -100,11 +100,11 @@
     "完了",
   ];
   const DEFAULT_COMPANY = {
-    name: "",
-    postal: "",
-    address: "",
-    tel: "",
-    fax: "",
+    name: "株式会社光陽",
+    postal: "671-1101",
+    address: "兵庫県姫路市広畑区東夢前台4丁目16番地",
+    tel: "079-230-4331",
+    fax: "079-230-4333",
   };
   const DEFAULT_MAIL = {
     subject: "工事写真帳送付（{工事名}）",
