@@ -1300,7 +1300,11 @@
       const blob = new Blob([bytes], { type: "application/pdf" });
       lastPdfUrl = URL.createObjectURL(blob);
 
-      const today = new Date().toISOString().slice(0, 10);
+      // 端末のローカル日付。toISOString() はUTC基準のため、朝9時前だと前日になる
+      const nowD = new Date();
+      const pad2 = (n) => String(n).padStart(2, "0");
+      const today =
+        nowD.getFullYear() + "-" + pad2(nowD.getMonth() + 1) + "-" + pad2(nowD.getDate());
       const filename =
         "工事写真帳_" + sanitizeFileName(state.job.name) + "_" + today + ".pdf";
 
