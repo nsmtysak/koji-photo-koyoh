@@ -465,11 +465,7 @@
 
       // 画面に反映し直す（自社情報は全項目が固定値）
       Object.assign(state.company, FIXED_COMPANY);
-      els.coName.value = FIXED_COMPANY.name;
-      els.coPostal.value = FIXED_COMPANY.postal;
-      els.coAddress.value = FIXED_COMPANY.address;
-      els.coTel.value = FIXED_COMPANY.tel;
-      els.coFax.value = FIXED_COMPANY.fax;
+      fillCompanyFields();
       els.mailSubject.value = state.mail.subject || "";
       renderCats();
       renderBodyTpls();
@@ -482,8 +478,18 @@
     document.body.classList.remove("no-scroll");
   }
 
+  // 自社情報を画面に表示する（固定値なので入力は受け付けず、表示だけ行う）
+  function fillCompanyFields() {
+    els.coName.value = FIXED_COMPANY.name;
+    els.coPostal.value = FIXED_COMPANY.postal;
+    els.coAddress.value = FIXED_COMPANY.address;
+    els.coTel.value = FIXED_COMPANY.tel;
+    els.coFax.value = FIXED_COMPANY.fax;
+  }
+
   function initSettings() {
     // 自社情報は全項目が固定のため、入力を受け付けない（bindText で結びつけない）
+    fillCompanyFields();
     bindText(els.mailSubject, state.mail, "subject", LS.mail);
 
     els.bodyTplAdd.addEventListener("click", addBodyTpl);
