@@ -24,9 +24,6 @@
     <button id="clear-all" class="header-btn header-btn--left" type="button">
       クリア
     </button>
-    <button id="open-link-creator" class="header-btn header-btn--center" type="button">
-      撮影指示
-    </button>
     <button id="open-settings" class="header-btn header-btn--right" type="button"
       aria-label="設定">
       設定
@@ -34,16 +31,6 @@
   </header>
 
   <main id="app" class="app-main">
-    <!-- 撮影指示（協力会社向け。リンクで開いたときのみ表示） -->
-    <section id="instruction" class="card instruction is-hidden" aria-label="撮影指示">
-      <h2 class="card__title card__title--inline">撮影指示（元請けより）</h2>
-      <p id="instruction-customer" class="instruction__customer is-hidden"></p>
-      <ul id="instruction-list" class="instruction-list"></ul>
-      <p class="card__note">
-        指定の区分・メモに沿って撮影してください。写真に区分を割り当てると ✓ が付きます。
-      </p>
-    </section>
-
     <!-- 工事情報（写真選択後は折りたたみ） -->
     <section class="card" aria-label="工事情報">
       <div class="card__head">
@@ -229,70 +216,10 @@
     </div>
   </div>
 
-  <!-- ===== 撮影指示リンク作成（元請け用・オーバーレイ） ===== -->
-  <div id="link-creator" class="overlay is-hidden" role="dialog" aria-modal="true"
-    aria-label="撮影指示リンクの作成">
-    <header class="overlay__header">
-      <span aria-hidden="true"></span>
-      <h2 class="overlay__title">撮影指示リンクの作成</h2>
-      <button id="lc-cancel" class="header-btn header-btn--right" type="button">閉じる</button>
-    </header>
-
-    <div class="overlay__body">
-      <section class="card" aria-label="工事情報">
-        <h3 class="card__title">工事情報</h3>
-        <div class="field">
-          <label class="field__label" for="lc-orderNo">注文番号</label>
-          <input id="lc-orderNo" class="field__input" type="text" placeholder="例: 12345" />
-        </div>
-        <div class="field">
-          <label class="field__label" for="lc-name">工事名</label>
-          <input id="lc-name" class="field__input" type="text"
-            placeholder="例: 換気ダクト敷設工事" />
-        </div>
-        <div class="field">
-          <label class="field__label" for="lc-customer">顧客名</label>
-          <input id="lc-customer" class="field__input" type="text"
-            placeholder="例: ○○○○株式会社" />
-        </div>
-        <div class="field">
-          <label class="field__label" for="lc-place">工事場所</label>
-          <input id="lc-place" class="field__input" type="text"
-            placeholder="例: 1工場2F" />
-        </div>
-      </section>
-
-      <section class="card" aria-label="撮影ポイント">
-        <h3 class="card__title">撮影ポイント（区分＋メモ）</h3>
-        <p class="card__note">
-          撮ってほしい区分と一言メモを順番に並べてください。上から順に協力会社へ表示されます。
-        </p>
-        <div id="lc-points" class="lc-points"></div>
-        <button id="lc-point-add" class="btn btn--ghost btn--block" type="button">
-          ポイントを追加
-        </button>
-      </section>
-
-      <button id="lc-send" class="btn btn--block" type="button">リンクを作成して共有</button>
-
-      <section id="lc-result" class="card is-hidden" aria-label="作成したリンク">
-        <h3 class="card__title">作成したリンク</h3>
-        <textarea id="lc-url" class="field__input field__textarea" rows="5" readonly></textarea>
-        <p id="lc-length" class="field__hint"></p>
-        <button id="lc-copy" class="btn btn--ghost btn--block" type="button">リンクをコピー</button>
-        <p class="card__note">
-          共有画面が出たら LINE を選んで協力会社に送ってください。
-          共有を閉じてしまった場合は「リンクをコピー」でコピーして貼り付けできます。
-        </p>
-      </section>
-    </div>
-  </div>
-
   <!-- PDF生成ライブラリ（ローカル同梱・オフライン対応） -->
   <script src="js/lib/pdf-lib.min.js"></script>
   <script src="js/lib/fontkit.umd.min.js"></script>
   <script src="js/pdf.js"></script>
-  <script src="js/template.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

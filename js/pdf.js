@@ -285,7 +285,8 @@ window.KojiPDF = (function () {
   function drawPhotoCell(page, font, image, texts, cellLeft, cellTop, cellW, cellH, showDate) {
     // 施工区分が「選択＋自由入力」で2行になり得るため文言領域を1行分広めに確保
     const textH = 52;
-    const imgBoxH = cellH - textH;
+    // 枠が高すぎると横長写真の上下に余白が増えるため、4:3が収まる高さを上限にする
+    const imgBoxH = Math.min(cellH - textH, cellW * 0.78);
     const imgBoxY = cellTop - imgBoxH; // 枠の下端
 
     drawImageBox(page, image, cellLeft, imgBoxY, cellW, imgBoxH);
