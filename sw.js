@@ -7,7 +7,7 @@
    ※ キャッシュを作り直したい時は CACHE_NAME のバージョンを上げる。
    =========================================================== */
 
-const CACHE_NAME = "koji-photo-koyoh-v8";
+const CACHE_NAME = "koji-photo-koyoh-v9";
 
 /* GitHub Pages は Cache-Control: max-age=600 を返すため、ふつうに fetch すると
    最大10分ぶん古いファイルがブラウザのキャッシュから返る。HTMLだけ新しくJSが古い、

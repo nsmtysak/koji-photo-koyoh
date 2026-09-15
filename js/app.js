@@ -26,7 +26,6 @@
     bodyTpl: "koji.bodyTemplates",
     cats: "koji.categories",
     perPage: "koji.perPage",
-    showDate: "koji.showDate", // 撮影日をPDFに表示するか（true/false）
     session: "koji.session", // 写真の並び順・区分（本体はIndexedDB）
   };
 
@@ -138,8 +137,6 @@
       return { list: DEFAULT_BODY_TPL.list.slice(), selected: 0 };
     })(),
     perPage: [2, 3, 4].indexOf(load(LS.perPage, 3)) >= 0 ? load(LS.perPage, 3) : 3,
-    // 撮影日をPDFに表示するか（既定: 表示する）
-    showDate: load(LS.showDate, true) === false ? false : true,
   };
 
   // 一度だけ: 新しく既定に加えた「部材」を、未登録なら「施工前」の後に追加
@@ -270,7 +267,6 @@
     catAddBtn: $("cat-add-btn"),
     catReset: $("cat-reset"),
     perPage: $("per-page"),
-    showDate: $("show-date"),
   };
 
   /* ===========================================================
@@ -435,7 +431,6 @@
       },
       cats: state.cats.slice(),
       perPage: state.perPage,
-      showDate: state.showDate,
     };
     els.settings.classList.remove("is-hidden");
     document.body.classList.add("no-scroll");
@@ -460,8 +455,6 @@
       saveBodyTpl();
       state.perPage = s.perPage;
       save(LS.perPage, state.perPage);
-      state.showDate = s.showDate;
-      save(LS.showDate, state.showDate);
 
       // 画面に反映し直す（自社情報は全項目が固定値）
       Object.assign(state.company, FIXED_COMPANY);
@@ -470,7 +463,6 @@
       renderCats();
       renderBodyTpls();
       syncPerPage();
-      syncShowDate();
       renderPhotos();
     }
     settingsSnapshot = null;
@@ -521,16 +513,6 @@
     });
     syncPerPage();
 
-    // 撮影日の表示有無（有/無）
-    els.showDate.querySelectorAll(".segmented__btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        state.showDate = btn.dataset.value === "1";
-        save(LS.showDate, state.showDate);
-        syncShowDate();
-      });
-    });
-    syncShowDate();
-
     renderCats();
   }
 
@@ -539,15 +521,6 @@
       btn.classList.toggle(
         "is-active",
         parseInt(btn.dataset.value, 10) === state.perPage
-      );
-    });
-  }
-
-  function syncShowDate() {
-    els.showDate.querySelectorAll(".segmented__btn").forEach((btn) => {
-      btn.classList.toggle(
-        "is-active",
-        (btn.dataset.value === "1") === state.showDate
       );
     });
   }
@@ -1125,8 +1098,7 @@
         company: state.company,
         photos: state.photos,
         perPage: state.perPage,
-        showDate: state.showDate,
-        onProgress: setLabel,
+          onProgress: setLabel,
       });
 
       // 以前のURLを解放

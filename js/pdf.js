@@ -2,8 +2,8 @@
    工事写真台帳 — PDF生成（Phase 3）
    pdf-lib + fontkit で日本語フォントをサブセット埋め込み。
    レイアウト:
-     1ページ目  : 表紙（「工事写真帳」/ 注文番号・工事名・工事場所 / 自社情報）
-     2ページ目〜: 写真3枚/ページ（左=写真、右=工事件名/工事場所/施工区分）
+     1ページ目  : 表紙（「作業報告書」/ 発行日 / 注文番号・工事名・工事場所 / 自社情報）
+     2ページ目〜: 写真2〜4枚/ページ（写真＋施工区分）
    公開API: window.KojiPDF.generate({ job, company, photos }) -> Uint8Array
    =========================================================== */
 
@@ -90,8 +90,22 @@ window.KojiPDF = (function () {
 
   /* ---------- 表紙 ---------- */
   function drawCover(page, font, job, company) {
+    // 発行日（右上）。書類を出した日＝PDFを作った日。
+    const d = new Date();
+    const issued =
+      "発行日: " + d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日";
+    const issuedSize = 11;
+    const iw = font.widthOfTextAtSize(issued, issuedSize);
+    page.drawText(issued, {
+      x: W - MARGIN - iw,
+      y: H - 70,
+      size: issuedSize,
+      font,
+      color: COLOR_SUB,
+    });
+
     // タイトル
-    const title = "工事写真帳";
+    const title = "作業報告書";
     const titleSize = 30;
     const tw = font.widthOfTextAtSize(title, titleSize);
     page.drawText(title, {
@@ -244,29 +258,16 @@ window.KojiPDF = (function () {
     return yy;
   }
 
-  // 区分/日付を描画。compact時は区分と日付を同じ行（左右）に。
-  // showDate=false なら撮影日を出さず、施工区分のみ幅いっぱいに描画する。
-  // ※ 工事件名・工事場所は表紙にあるため、写真ページには出さない。
-  function drawFields(page, font, x, topY, width, texts, labelSize, valSize, compact, showDate) {
-    let ty = topY;
-    if (!showDate) {
-      ty = drawBlock(page, font, "施工区分", texts.category, x, ty, width, labelSize, valSize) - 6;
-    } else if (compact) {
-      // 施工区分 と 撮影日 を同じ行（左右2列）に
-      const gap = 10;
-      const halfW = (width - gap) / 2;
-      const y1 = drawBlock(page, font, "施工区分", texts.category, x, ty, halfW, labelSize, valSize);
-      const y2 = drawBlock(page, font, "撮影日", texts.date, x + halfW + gap, ty, halfW, labelSize, valSize);
-      ty = Math.min(y1, y2) - 6;
-    } else {
-      ty = drawBlock(page, font, "施工区分", texts.category, x, ty, width, labelSize, valSize) - 6;
-      ty = drawBlock(page, font, "撮影日", texts.date, x, ty, width, labelSize, valSize) - 6;
-    }
-    return ty;
+  // 写真ごとの文言を描画する。出すのは施工区分だけ。
+  // ※ 工事件名・工事場所は表紙にあるため、撮影日は不要のため、ここには出さない。
+  function drawFields(page, font, x, topY, width, texts, labelSize, valSize) {
+    return (
+      drawBlock(page, font, "施工区分", texts.category, x, topY, width, labelSize, valSize) - 6
+    );
   }
 
   /* ---------- 行レイアウト（2・3枚/ページ）: 左=写真、右=文言 ---------- */
-  function drawPhotoSlot(page, font, image, texts, slotTop, slotH, showDate) {
+  function drawPhotoSlot(page, font, image, texts, slotTop, slotH) {
     const pad = 10;
     const innerTop = slotTop - pad;
     const innerH = slotH - pad * 2;
@@ -278,11 +279,11 @@ window.KojiPDF = (function () {
 
     const textX = imgBoxX + imgBoxW + 18;
     const textW = W - MARGIN - textX;
-    drawFields(page, font, textX, innerTop - 6, textW, texts, 10, 12, false, showDate);
+    drawFields(page, font, textX, innerTop - 6, textW, texts, 10, 12);
   }
 
   /* ---------- グリッドレイアウト（4枚/ページ）: 上=写真、下=文言 ---------- */
-  function drawPhotoCell(page, font, image, texts, cellLeft, cellTop, cellW, cellH, showDate) {
+  function drawPhotoCell(page, font, image, texts, cellLeft, cellTop, cellW, cellH) {
     // 施工区分が「選択＋自由入力」で2行になり得るため文言領域を1行分広めに確保
     const textH = 52;
     // 枠が高すぎると横長写真の上下に余白が増えるため、4:3が収まる高さを上限にする
@@ -291,38 +292,23 @@ window.KojiPDF = (function () {
 
     drawImageBox(page, image, cellLeft, imgBoxY, cellW, imgBoxH);
 
-    // 写真の下に文言（区分と日付は同じ行）
-    drawFields(page, font, cellLeft, imgBoxY - 6, cellW, texts, 9, 11, true, showDate);
-  }
-
-  // 区分/日付 を左右2列で描画（2枚レイアウト用）。
-  // showDate=false なら撮影日を出さず、施工区分を幅いっぱいに描画する。
-  // ※ 工事件名・工事場所は表紙にあるため、写真ページには出さない。
-  function drawFields2x2(page, font, x, topY, width, texts, labelSize, valSize, showDate) {
-    const gap = 16;
-    const halfW = (width - gap) / 2;
-    const x2 = x + halfW + gap;
-    if (showDate) {
-      drawBlock(page, font, "施工区分", texts.category, x, topY, halfW, labelSize, valSize);
-      drawBlock(page, font, "撮影日", texts.date, x2, topY, halfW, labelSize, valSize);
-    } else {
-      drawBlock(page, font, "施工区分", texts.category, x, topY, width, labelSize, valSize);
-    }
+    // 写真の下に施工区分
+    drawFields(page, font, cellLeft, imgBoxY - 6, cellW, texts, 9, 11);
   }
 
   /* ---------- 全幅レイアウト（2枚/ページ）: 上=写真(全幅)、下=文言 ---------- */
-  function drawPhotoWide(page, font, image, texts, slotTop, slotH, showDate) {
+  function drawPhotoWide(page, font, image, texts, slotTop, slotH) {
     const pad = 10;
     const innerTop = slotTop - pad;
     const innerH = slotH - pad * 2;
     const x = MARGIN;
     const w = W - MARGIN * 2; // 枠は幅いっぱい
-    const textH = 52; // 区分/日付の1段ぶん
+    const textH = 52; // 施工区分の1段ぶん
     const imgBoxH = innerH - textH;
     const imgBoxY = innerTop - imgBoxH;
 
     drawImageBox(page, image, x, imgBoxY, w, imgBoxH);
-    drawFields2x2(page, font, x, imgBoxY - 8, w, texts, 10, 12, showDate);
+    drawFields(page, font, x, imgBoxY - 8, w, texts, 10, 12);
   }
 
   /* ---------- メイン ---------- */
@@ -330,7 +316,6 @@ window.KojiPDF = (function () {
     const job = data.job || {};
     const company = data.company || {};
     const photos = data.photos || [];
-    const showDate = data.showDate === false ? false : true;
     const onProgress = data.onProgress || function () {};
 
     const doc = await PDFDocument.create();
@@ -380,7 +365,6 @@ window.KojiPDF = (function () {
         // 工事件名・工事場所は表紙に載るため、写真ページには出さない
         // 施工区分は「選択した区分」と「自由入力」を別々の行で表示する
         category: [photo.category, photo.note].filter(Boolean).join("\n"),
-        date: photo.date || "",
       };
       const idx = i % perPage;
 
@@ -389,17 +373,17 @@ window.KojiPDF = (function () {
         const row = Math.floor(idx / 2);
         const cellLeft = MARGIN + col * (cellW + gapX);
         const cellTop = contentTop - row * (cellH + gapY);
-        drawPhotoCell(page, font, image, texts, cellLeft, cellTop, cellW, cellH, showDate);
+        drawPhotoCell(page, font, image, texts, cellLeft, cellTop, cellW, cellH);
       } else if (perPage === 2) {
         // 全幅: 上=写真(幅いっぱい)、下=2段の文言
         const slotH = contentH / 2;
         const slotTop = contentTop - idx * slotH;
-        drawPhotoWide(page, font, image, texts, slotTop, slotH, showDate);
+        drawPhotoWide(page, font, image, texts, slotTop, slotH);
       } else {
         // 3枚: 左=写真、右=文言
         const slotH = contentH / perPage;
         const slotTop = contentTop - idx * slotH;
-        drawPhotoSlot(page, font, image, texts, slotTop, slotH, showDate);
+        drawPhotoSlot(page, font, image, texts, slotTop, slotH);
       }
     }
 

@@ -51,7 +51,8 @@ koujikanri/
 PDF: `window.KojiPDF.generate({ job, company, photos, onProgress })` → Uint8Array。
 写真は canvas 経由で JPEG 化（HEIC/EXIF回転/サイズ最適化, 最大1600px）してから `embedJpg`。
 レイアウトは `perPage`（2/3/4）で切替: 2・3枚=写真左＋文言右（行）、4枚=2列2段で写真下に文言（グリッド）。
-写真ページに出すのは**施工区分と撮影日のみ**（工事件名・工事場所は表紙にあるため出さない）。
+写真ページに出すのは**施工区分のみ**（工事件名・工事場所は表紙にあるため、撮影日は不要のため出さない）。
+表紙の表題は**「作業報告書」**。右上に**発行日**（PDFを作った日）を入れる。
 日本語は **M PLUS 1p（TrueType/glyf）を `embedFont(bytes, { subset:false })` で全埋め込み**。
 - 重要: pdf-lib(1.17.1)+@pdf-lib/fontkit(1.1.1) の**サブセット機能はグリフ欠落のバグ**があり、
   さらに CFF/OTTO フォント（Noto Sans JP 等）はサブセット埋め込みが壊れて iPhone で文字化けする。
@@ -92,7 +93,7 @@ PDF: `window.KojiPDF.generate({ job, company, photos, onProgress })` → Uint8Ar
 
 写真ごとに設定するのは **施工区分（`category`）のみ**。工事件名・工事場所は
 工事情報（`koji.jobInfo` の name/place）の共通値を全写真で使う（写真ごとには持たない）。
-**撮影日（`date`）は写真ファイルの `lastModified` から自動取得**しPDFに表示する。
+撮影日は**PDFに出さない**（`photo.date` は取り込み情報として保持するだけ）。
 `category`/`date` は state.photos の各要素に保持し、session（IndexedDB＋koji.session）で復元する。
 
 メール送付（Phase 4）: iOSの共有シートは件名(title)を件名欄に入れず本文に混ぜるため、
