@@ -90,13 +90,10 @@
 
   /* ---------- 既定値 ---------- */
   const DEFAULT_CATS = [
+    "型式／シリアル",
     "施工前",
     "部材",
-    "解体前",
-    "解体後",
     "施工中",
-    "隠蔽前",
-    "施工後",
     "完了",
   ];
   // 会社名は固定（設定画面から変更できない。光陽向けの版であることの担保）
@@ -200,6 +197,20 @@
         save(LS.company, state.company);
       }
       localStorage.setItem("koji.mig.company_blank", "1");
+    } catch (e) {
+      /* noop */
+    }
+  })();
+
+  // 一度だけ: 施工区分の候補を光陽向けの5つへ揃える。
+  // 端末に古い候補（解体前・隠蔽前など）が残っていても入れ替える。
+  (function migrateCatsKoyoh() {
+    try {
+      if (localStorage.getItem("koji.mig.cats_koyoh")) return;
+      state.cats.length = 0;
+      DEFAULT_CATS.forEach((c) => state.cats.push(c));
+      save(LS.cats, state.cats);
+      localStorage.setItem("koji.mig.cats_koyoh", "1");
     } catch (e) {
       /* noop */
     }

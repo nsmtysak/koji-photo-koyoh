@@ -51,6 +51,7 @@ koujikanri/
 PDF: `window.KojiPDF.generate({ job, company, photos, onProgress })` → Uint8Array。
 写真は canvas 経由で JPEG 化（HEIC/EXIF回転/サイズ最適化, 最大1600px）してから `embedJpg`。
 レイアウトは `perPage`（2/3/4）で切替: 2・3枚=写真左＋文言右（行）、4枚=2列2段で写真下に文言（グリッド）。
+写真ページに出すのは**施工区分と撮影日のみ**（工事件名・工事場所は表紙にあるため出さない）。
 日本語は **M PLUS 1p（TrueType/glyf）を `embedFont(bytes, { subset:false })` で全埋め込み**。
 - 重要: pdf-lib(1.17.1)+@pdf-lib/fontkit(1.1.1) の**サブセット機能はグリフ欠落のバグ**があり、
   さらに CFF/OTTO フォント（Noto Sans JP 等）はサブセット埋め込みが壊れて iPhone で文字化けする。
@@ -75,11 +76,16 @@ PDF: `window.KojiPDF.generate({ job, company, photos, onProgress })` → Uint8Ar
 - `koji.company` … `{ name, postal, address, tel, fax }`（自社情報。表紙下部）
 - `koji.mail` … `{ to, subject }`（メール雛形。件名は `{工事名}` を差し込み）
 - `koji.bodyTemplates` … `{ list:[string], selected:index }`（本文の定型句。複数登録・選択式）
-- `koji.categories` … `string[]`（施工区分タグの候補。設定画面で▲▼並べ替え可。既定に「部材」を含む）
+- `koji.categories` … `string[]`（施工区分タグの候補。設定画面で▲▼並べ替え可。既定は「型式／シリアル／施工前／部材／施工中／完了」の5つ）
 - `koji.recentTo` … `string[]`（直近に使ったメール宛先。送付時の候補表示）
 - `koji.perPage` … `2|3|4`（1ページの写真枚数。既定3）
 - `koji.session` … `{ order:[id], cats:{id:区分}, dates:{id:日付} }`（作業中の写真の並び順・区分・撮影日。本体は IndexedDB `koji-db/photos`）
-- `koji.mig.buzai` … 既存ユーザーへ「部材」を一度だけ追加する移行フラグ
+- `koji.mig.buzai` … 既存ユーザーへ「部材」を一度だけ追加する移行フラグ（旧既定の名残）
+- `koji.mig.cats_koyoh` … 施工区分の候補を光陽向けの5つへ一度だけ揃える移行フラグ
+
+会社名は `株式会社光陽` に固定（`FIXED_COMPANY_NAME`）。設定画面では readonly にし、
+起動のたびにコードで上書きする（localStorage はドメイン単位で共有されるため、
+同じ端末で別の会社向けの版を開くと別の会社名が残ることがある）。
 
 写真本体は **IndexedDB に一時退避**し、iOSのPWA再読み込み（プレビュー表示で背面化等）後も復元する。
 これは「溜め込み」ではなく作業セッションの保全で、**クリアで IndexedDB ごと消去**する。
