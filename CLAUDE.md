@@ -1,11 +1,11 @@
-# 工事写真台帳アプリ — CLAUDE.md
+# 作業報告書アプリ — CLAUDE.md
 
-株式会社光陽の工事写真帳を作成・メール送付するためのアプリ。
+株式会社光陽の作業報告書を作成・メール送付するためのアプリ。
 
 ## 1. 目的
 
 iPhone に保存済みの「黒板が焼き込まれた工事写真」を選択し、アプリ上で並べ替え・テキスト付与を行い、
-写真3枚/ページの工事写真帳PDFを自動生成して、メールで送付する。
+写真3枚/ページの作業報告書PDFを自動生成して、メールで送付する。
 
 - **やること**: 写真選択 → 並べ替え → 写真ごとのテキスト入力 → 表紙付きPDF生成 → 共有シートでメール送付
 - **やらないこと**: 撮影、黒板合成、写真の長期保存
@@ -46,7 +46,7 @@ koujikanri/
 ```
 
 アイコンは `.claude/makeicon.js`（pdf-lib描画→poppler `pdftocairo`でPNG化）で生成。
-デザインは「工事写真帳PDFをメール送付」を表す：青背景＋白い写真カード（山/太陽＋PDFタグ）＋紙飛行機（送信）。
+デザインは「作業報告書PDFをメール送付」を表す：青背景＋白い写真カード（山/太陽＋PDFタグ）＋紙飛行機（送信）。
 
 PDF: `window.KojiPDF.generate({ job, company, photos, onProgress })` → Uint8Array。
 写真は canvas 経由で JPEG 化（HEIC/EXIF回転/サイズ最適化, 最大1600px）してから `embedJpg`。
@@ -57,7 +57,7 @@ PDF: `window.KojiPDF.generate({ job, company, photos, onProgress })` → Uint8Ar
 - 重要: pdf-lib(1.17.1)+@pdf-lib/fontkit(1.1.1) の**サブセット機能はグリフ欠落のバグ**があり、
   さらに CFF/OTTO フォント（Noto Sans JP 等）はサブセット埋め込みが壊れて iPhone で文字化けする。
   そのため TrueType フォント＋`subset:false`（全埋め込み, 約1MB/PDF）で確実に埋め込む。
-ファイル名: `工事写真帳_{工事名}_{YYYY-MM-DD}.pdf`。
+ファイル名: `作業報告書_{工事名}_{YYYY-MM-DD}.pdf`。
 
 ## 4. 段階的開発計画（Phase 0〜4）
 

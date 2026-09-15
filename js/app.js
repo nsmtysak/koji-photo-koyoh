@@ -1,5 +1,5 @@
 /* ===========================================================
-   工事写真台帳 — アプリ本体
+   作業報告書 — アプリ本体
    Phase 2: 工事情報入力 / 写真ごとのテキスト入力 / 設定画面
    - 設定・工事情報・区分タグは localStorage に保存。
    - 写真本体と写真ごとのテキストはセッション中のみ保持（長期保存しない）。
@@ -104,13 +104,13 @@
   };
   const DEFAULT_COMPANY = Object.assign({}, FIXED_COMPANY);
   const DEFAULT_MAIL = {
-    subject: "工事写真帳送付（{工事名}）",
+    subject: "作業報告書送付（{工事名}）",
   };
   // 本文の定型句（複数登録・選択式。選択中のものを本文に挿入）
   const DEFAULT_BODY =
     "ご担当者様\n\n" +
     "本メールはアプリによる自動配信のため、文面が十分に整っておりませんことをお詫び申し上げます。\n" +
-    "ご依頼の工事が完了致しましたので、添付にて工事写真帳を送付致します。\n" +
+    "ご依頼の工事が完了致しましたので、添付にて作業報告書を送付致します。\n" +
     "ご査収の程よろしくお願い致します。";
   const DEFAULT_BODY_TPL = { list: [DEFAULT_BODY], selected: 0 };
   const DEFAULT_JOB = { orderNo: "", name: "", customer: "", place: "" };
@@ -202,6 +202,35 @@
       DEFAULT_CATS.forEach((c) => state.cats.push(c));
       save(LS.cats, state.cats);
       localStorage.setItem("koji.mig.cats_koyoh", "1");
+    } catch (e) {
+      /* noop */
+    }
+  })();
+
+  // 一度だけ: 書類名を「工事写真帳」→「作業報告書」に変えたのに合わせ、
+  // 旧既定のままのメール件名・本文定型句を新しい既定へ差し替える。
+  // 利用者が自分で書き換えたものは、そのまま残す。
+  (function migrateReportName() {
+    try {
+      if (localStorage.getItem("koji.mig.report_name")) return;
+      if (state.mail.subject === "工事写真帳送付（{工事名}）") {
+        state.mail.subject = DEFAULT_MAIL.subject;
+        save(LS.mail, state.mail);
+      }
+      const oldBody =
+        "ご担当者様\n\n" +
+        "本メールはアプリによる自動配信のため、文面が十分に整っておりませんことをお詫び申し上げます。\n" +
+        "ご依頼の工事が完了致しましたので、添付にて工事写真帳を送付致します。\n" +
+        "ご査収の程よろしくお願い致します。";
+      let changed = false;
+      state.bodyTpl.list.forEach((t, i) => {
+        if (t === oldBody) {
+          state.bodyTpl.list[i] = DEFAULT_BODY;
+          changed = true;
+        }
+      });
+      if (changed) save(LS.bodyTpl, state.bodyTpl);
+      localStorage.setItem("koji.mig.report_name", "1");
     } catch (e) {
       /* noop */
     }
@@ -983,7 +1012,7 @@
 
   // 件名の雛形に差し込み
   function buildSubject() {
-    return fillTemplate(state.mail.subject || "工事写真帳送付の件");
+    return fillTemplate(state.mail.subject || "作業報告書送付の件");
   }
 
   // 本文の定型句（選択中）に差し込み
@@ -1112,7 +1141,7 @@
       const today =
         nowD.getFullYear() + "-" + pad2(nowD.getMonth() + 1) + "-" + pad2(nowD.getDate());
       const filename =
-        "工事写真帳_" + sanitizeFileName(state.job.name) + "_" + today + ".pdf";
+        "作業報告書_" + sanitizeFileName(state.job.name) + "_" + today + ".pdf";
 
       // 保存・共有用の File（iOSの共有シートで「"ファイル"に保存」が選べる）
       const file = new File([blob], filename, { type: "application/pdf" });
@@ -1191,5 +1220,5 @@
   syncSendBtns();
   renderPhotos();
   restoreSession(); // 再読み込み時に作業中の写真を復元
-  console.log("[koji] 工事写真台帳 起動（Phase 4）");
+  console.log("[koji] 作業報告書 起動（Phase 4）");
 })();

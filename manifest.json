@@ -1,7 +1,7 @@
 {
-  "name": "工事写真台帳",
-  "short_name": "工事写真台帳",
-  "description": "工事写真帳の作成・メール送付アプリ",
+  "name": "作業報告書",
+  "short_name": "作業報告書",
+  "description": "作業報告書の作成・メール送付アプリ",
   "lang": "ja",
   "start_url": "./index.html",
   "scope": "./",
