@@ -127,25 +127,27 @@
         <div class="field">
           <label class="field__label" for="co-name">会社名</label>
           <input id="co-name" class="field__input" type="text" readonly aria-readonly="true" />
-          <p class="field__hint">会社名は固定です（変更できません）。</p>
         </div>
         <div class="field">
           <label class="field__label" for="co-postal">郵便番号</label>
-          <input id="co-postal" class="field__input" type="text" inputmode="numeric" />
+          <input id="co-postal" class="field__input" type="text" inputmode="numeric" readonly
+            aria-readonly="true" />
         </div>
         <div class="field">
           <label class="field__label" for="co-address">住所</label>
-          <input id="co-address" class="field__input" type="text" />
+          <input id="co-address" class="field__input" type="text" readonly aria-readonly="true" />
         </div>
         <div class="field">
           <label class="field__label" for="co-tel">TEL</label>
-          <input id="co-tel" class="field__input" type="text" inputmode="tel" />
+          <input id="co-tel" class="field__input" type="text" inputmode="tel" readonly
+            aria-readonly="true" />
         </div>
         <div class="field">
           <label class="field__label" for="co-fax">FAX</label>
-          <input id="co-fax" class="field__input" type="text" inputmode="tel" />
+          <input id="co-fax" class="field__input" type="text" inputmode="tel" readonly
+            aria-readonly="true" />
         </div>
-        <p class="card__note">PDF表紙の下部に表示されます。入力すると自動保存されます。</p>
+        <p class="card__note">PDF表紙の下部に表示されます。自社情報は固定です（変更できません）。</p>
       </section>
 
       <!-- メール件名 -->

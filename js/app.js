@@ -95,15 +95,15 @@
     "施工中",
     "完了",
   ];
-  // 会社名は固定（設定画面から変更できない。光陽向けの版であることの担保）
-  const FIXED_COMPANY_NAME = "株式会社光陽";
-  const DEFAULT_COMPANY = {
-    name: FIXED_COMPANY_NAME,
+  // 自社情報は全項目が固定（設定画面から変更できない。光陽向けの版であることの担保）
+  const FIXED_COMPANY = {
+    name: "株式会社光陽",
     postal: "671-1101",
     address: "兵庫県姫路市広畑区東夢前台4丁目16番地",
     tel: "079-230-4331",
     fax: "079-230-4333",
   };
+  const DEFAULT_COMPANY = Object.assign({}, FIXED_COMPANY);
   const DEFAULT_MAIL = {
     subject: "工事写真帳送付（{工事名}）",
   };
@@ -210,12 +210,15 @@
     }
   })();
 
-  // 会社名は常に固定値にする。
+  // 自社情報は常に固定値にする。
   // localStorage はドメイン単位で共有されるため、同じ端末で別の会社向けの版を
-  // 開いた履歴があると別の会社名が残っていることがある。起動のたびに上書きする。
-  (function fixCompanyName() {
-    if (state.company.name !== FIXED_COMPANY_NAME) {
-      state.company.name = FIXED_COMPANY_NAME;
+  // 開いた履歴があると別の会社の情報が残っていることがある。起動のたびに上書きする。
+  (function fixCompany() {
+    const changed = Object.keys(FIXED_COMPANY).some(
+      (k) => state.company[k] !== FIXED_COMPANY[k]
+    );
+    if (changed) {
+      Object.assign(state.company, FIXED_COMPANY);
       save(LS.company, state.company);
     }
   })();
@@ -460,13 +463,13 @@
       state.showDate = s.showDate;
       save(LS.showDate, state.showDate);
 
-      // 画面に反映し直す（会社名は固定値）
-      state.company.name = FIXED_COMPANY_NAME;
-      els.coName.value = FIXED_COMPANY_NAME;
-      els.coPostal.value = state.company.postal || "";
-      els.coAddress.value = state.company.address || "";
-      els.coTel.value = state.company.tel || "";
-      els.coFax.value = state.company.fax || "";
+      // 画面に反映し直す（自社情報は全項目が固定値）
+      Object.assign(state.company, FIXED_COMPANY);
+      els.coName.value = FIXED_COMPANY.name;
+      els.coPostal.value = FIXED_COMPANY.postal;
+      els.coAddress.value = FIXED_COMPANY.address;
+      els.coTel.value = FIXED_COMPANY.tel;
+      els.coFax.value = FIXED_COMPANY.fax;
       els.mailSubject.value = state.mail.subject || "";
       renderCats();
       renderBodyTpls();
@@ -480,11 +483,7 @@
   }
 
   function initSettings() {
-    // 会社名は固定のため入力を受け付けない（bindText で結びつけない）
-    bindText(els.coPostal, state.company, "postal", LS.company);
-    bindText(els.coAddress, state.company, "address", LS.company);
-    bindText(els.coTel, state.company, "tel", LS.company);
-    bindText(els.coFax, state.company, "fax", LS.company);
+    // 自社情報は全項目が固定のため、入力を受け付けない（bindText で結びつけない）
     bindText(els.mailSubject, state.mail, "subject", LS.mail);
 
     els.bodyTplAdd.addEventListener("click", addBodyTpl);
@@ -971,8 +970,9 @@
     // 下段の「写真を選択／追加」は写真がある時だけ表示
     els.photoAddBottom.classList.toggle("is-hidden", total === 0);
     // 写真を選び終えたら「写真を選択／追加」を白背景・青文字にする（次の操作へ誘導）
-    els.photoAddTop.classList.toggle("btn--ghost", total > 0);
-    els.photoAddBottom.classList.toggle("btn--ghost", total > 0);
+    [els.photoAddTop, els.photoAddBottom].filter(Boolean).forEach((b) => {
+      b.classList.toggle("btn--ghost", total > 0);
+    });
     updateClearBtn();
     renderJobInfo();
 
@@ -1063,7 +1063,7 @@
   function syncSendBtns() {
     const ready = !!lastPdfFile;
     const label = !ready || lastCanShare ? "PDFを送る" : "PDFを保存（ダウンロード）";
-    [els.sendPdf, els.sendPdfTop].forEach((b) => {
+    [els.sendPdf, els.sendPdfTop].filter(Boolean).forEach((b) => {
       b.disabled = !ready;
       b.textContent = label;
     });
@@ -1186,15 +1186,27 @@
   /* ===========================================================
      イベント / 初期化
      =========================================================== */
-  els.input.addEventListener("change", (e) => {
-    addFiles(e.target.files);
-    e.target.value = ""; // 同じ写真を連続選択しても発火させる
-  });
-  els.clearAll.addEventListener("click", clearAll);
-  els.generatePdf.addEventListener("click", generatePdf);
-  els.generatePdfTop.addEventListener("click", generatePdf);
-  els.sendPdf.addEventListener("click", sendPdfNow);
-  els.sendPdfTop.addEventListener("click", sendPdfNow);
+  // HTMLとJSの版が食い違って要素が無い場合でも、他のボタンまで死なないようにする
+  // （黙って動かないのは困るので、見つからなければコンソールに残す）
+  function on(el, ev, fn, name) {
+    if (el) el.addEventListener(ev, fn);
+    else console.warn("[koji] 要素が見つかりません:", name);
+  }
+
+  on(
+    els.input,
+    "change",
+    (e) => {
+      addFiles(e.target.files);
+      e.target.value = ""; // 同じ写真を連続選択しても発火させる
+    },
+    "photo-input"
+  );
+  on(els.clearAll, "click", clearAll, "clear-all");
+  on(els.generatePdf, "click", generatePdf, "generate-pdf");
+  on(els.generatePdfTop, "click", generatePdf, "generate-pdf-top");
+  on(els.sendPdf, "click", sendPdfNow, "send-pdf");
+  on(els.sendPdfTop, "click", sendPdfNow, "send-pdf-top");
 
   initJobInfo();
   initSettings();

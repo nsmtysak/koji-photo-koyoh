@@ -83,9 +83,9 @@ PDF: `window.KojiPDF.generate({ job, company, photos, onProgress })` → Uint8Ar
 - `koji.mig.buzai` … 既存ユーザーへ「部材」を一度だけ追加する移行フラグ（旧既定の名残）
 - `koji.mig.cats_koyoh` … 施工区分の候補を光陽向けの5つへ一度だけ揃える移行フラグ
 
-会社名は `株式会社光陽` に固定（`FIXED_COMPANY_NAME`）。設定画面では readonly にし、
+自社情報（会社名・〒・住所・TEL・FAX）は固定（`FIXED_COMPANY`）。設定画面では全項目 readonly にし、
 起動のたびにコードで上書きする（localStorage はドメイン単位で共有されるため、
-同じ端末で別の会社向けの版を開くと別の会社名が残ることがある）。
+同じ端末で別の会社向けの版を開くと別の会社の情報が残ることがある）。
 
 写真本体は **IndexedDB に一時退避**し、iOSのPWA再読み込み（プレビュー表示で背面化等）後も復元する。
 これは「溜め込み」ではなく作業セッションの保全で、**クリアで IndexedDB ごと消去**する。

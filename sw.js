@@ -7,7 +7,13 @@
    ※ キャッシュを作り直したい時は CACHE_NAME のバージョンを上げる。
    =========================================================== */
 
-const CACHE_NAME = "koji-photo-koyoh-v6";
+const CACHE_NAME = "koji-photo-koyoh-v7";
+
+/* GitHub Pages は Cache-Control: max-age=600 を返すため、ふつうに fetch すると
+   最大10分ぶん古いファイルがブラウザのキャッシュから返る。HTMLだけ新しくJSが古い、
+   といった食い違いが起きてアプリが起動しなくなるので、常にサーバーへ問い合わせる
+   （no-cache = キャッシュがあっても更新の有無を確認する。変更が無ければ304で軽い）。 */
+const NO_CACHE = { cache: "no-cache" };
 
 const APP_SHELL = [
   "./",
@@ -27,7 +33,11 @@ const APP_SHELL = [
 // インストール: App Shell を事前キャッシュ（オフライン初回用）
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+    caches
+      .open(CACHE_NAME)
+      .then((cache) =>
+        cache.addAll(APP_SHELL.map((url) => new Request(url, NO_CACHE)))
+      )
   );
   self.skipWaiting(); // 新SWを即時待機解除
 });
@@ -57,7 +67,7 @@ self.addEventListener("fetch", (event) => {
   if (new URL(request.url).origin !== self.location.origin) return;
 
   event.respondWith(
-    fetch(request)
+    fetch(request, NO_CACHE)
       .then((response) => {
         // 正常応答ならキャッシュを更新（次のオフライン用）
         if (response && response.status === 200 && response.type === "basic") {
