@@ -265,17 +265,19 @@ body {
 
 .photo-item__thumb {
   flex: 0 0 auto;
-  width: 160px;            /* 横長の長方形で表示 */
-  height: 107px;           /* 3:2 の横長 */
+  width: 180px;            /* 写真を確認しやすい大きさ */
+  height: 135px;           /* 4:3（写真そのままの比率） */
   object-fit: cover;       /* 写真は無加工。表示の収まりのみ */
   border-radius: 8px;
   background: var(--bg);
   display: block;
 }
 
+/* 操作ボタンは縦1列。横並びだと、サムネを大きくしたぶん画面からはみ出す */
 .photo-item__ctrls {
   margin-left: auto;
   display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
