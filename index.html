@@ -128,12 +128,13 @@
     </header>
 
     <div class="overlay__body">
-      <!-- 自社情報（表紙下部に表示・編集可） -->
+      <!-- 自社情報（表紙下部に表示。会社名のみ固定・編集不可） -->
       <section class="card" aria-label="自社情報">
         <h3 class="card__title">自社情報（表紙下部に表示）</h3>
         <div class="field">
           <label class="field__label" for="co-name">会社名</label>
-          <input id="co-name" class="field__input" type="text" />
+          <input id="co-name" class="field__input" type="text" readonly aria-readonly="true" />
+          <p class="field__hint">会社名は固定です（変更できません）。</p>
         </div>
         <div class="field">
           <label class="field__label" for="co-postal">郵便番号</label>

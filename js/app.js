@@ -99,8 +99,10 @@
     "施工後",
     "完了",
   ];
+  // 会社名は固定（設定画面から変更できない。光陽向けの版であることの担保）
+  const FIXED_COMPANY_NAME = "株式会社光陽";
   const DEFAULT_COMPANY = {
-    name: "株式会社光陽",
+    name: FIXED_COMPANY_NAME,
     postal: "671-1101",
     address: "兵庫県姫路市広畑区東夢前台4丁目16番地",
     tel: "079-230-4331",
@@ -200,6 +202,16 @@
       localStorage.setItem("koji.mig.company_blank", "1");
     } catch (e) {
       /* noop */
+    }
+  })();
+
+  // 会社名は常に固定値にする。
+  // localStorage はドメイン単位で共有されるため、同じ端末で別の会社向けの版を
+  // 開いた履歴があると別の会社名が残っていることがある。起動のたびに上書きする。
+  (function fixCompanyName() {
+    if (state.company.name !== FIXED_COMPANY_NAME) {
+      state.company.name = FIXED_COMPANY_NAME;
+      save(LS.company, state.company);
     }
   })();
 
@@ -441,8 +453,9 @@
       state.showDate = s.showDate;
       save(LS.showDate, state.showDate);
 
-      // 画面に反映し直す
-      els.coName.value = state.company.name || "";
+      // 画面に反映し直す（会社名は固定値）
+      state.company.name = FIXED_COMPANY_NAME;
+      els.coName.value = FIXED_COMPANY_NAME;
       els.coPostal.value = state.company.postal || "";
       els.coAddress.value = state.company.address || "";
       els.coTel.value = state.company.tel || "";
@@ -460,7 +473,7 @@
   }
 
   function initSettings() {
-    bindText(els.coName, state.company, "name", LS.company);
+    // 会社名は固定のため入力を受け付けない（bindText で結びつけない）
     bindText(els.coPostal, state.company, "postal", LS.company);
     bindText(els.coAddress, state.company, "address", LS.company);
     bindText(els.coTel, state.company, "tel", LS.company);
