@@ -77,12 +77,12 @@ PDF: `window.KojiPDF.generate({ job, company, photos, onProgress })` → Uint8Ar
 - `koji.company` … `{ name, postal, address, tel, fax }`（自社情報。表紙下部）
 - `koji.mail` … `{ to, subject }`（メール雛形。件名は `{工事名}` を差し込み）
 - `koji.bodyTemplates` … `{ list:[string], selected:index }`（本文の定型句。複数登録・選択式）
-- `koji.categories` … `string[]`（施工区分タグの候補。設定画面で▲▼並べ替え可。既定は「型式／シリアル／施工前／部材／施工中／完了」の5つ）
+- `koji.categories` … `string[]`（施工区分タグの候補。設定画面で▲▼並べ替え可。既定は「型式／施工前／部材／施工中／施工後」の5つ）
 - `koji.recentTo` … `string[]`（直近に使ったメール宛先。送付時の候補表示）
 - `koji.perPage` … `2|3|4`（1ページの写真枚数。既定3）
 - `koji.session` … `{ order:[id], cats:{id:区分}, dates:{id:日付} }`（作業中の写真の並び順・区分・撮影日。本体は IndexedDB `koji-db/photos`）
 - `koji.mig.buzai` … 既存ユーザーへ「部材」を一度だけ追加する移行フラグ（旧既定の名残）
-- `koji.mig.cats_koyoh` … 施工区分の候補を光陽向けの5つへ一度だけ揃える移行フラグ
+- `koji.mig.cats_koyoh2` … 施工区分の候補を光陽向けの5つへ一度だけ揃える移行フラグ（候補を見直したら末尾の数字を上げて配り直す）
 
 自社情報（会社名・〒・住所・TEL・FAX）は固定（`FIXED_COMPANY`）。設定画面では全項目 readonly にし、
 起動のたびにコードで上書きする（localStorage はドメイン単位で共有されるため、

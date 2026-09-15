@@ -87,13 +87,7 @@
   })();
 
   /* ---------- 既定値 ---------- */
-  const DEFAULT_CATS = [
-    "型式／シリアル",
-    "施工前",
-    "部材",
-    "施工中",
-    "完了",
-  ];
+  const DEFAULT_CATS = ["型式", "施工前", "部材", "施工中", "施工後"];
   // 自社情報は全項目が固定（設定画面から変更できない。光陽向けの版であることの担保）
   const FIXED_COMPANY = {
     name: "株式会社光陽",
@@ -194,14 +188,15 @@
   })();
 
   // 一度だけ: 施工区分の候補を光陽向けの5つへ揃える。
-  // 端末に古い候補（解体前・隠蔽前など）が残っていても入れ替える。
+  // 端末に古い候補が残っていても入れ替える。
+  // ※ 候補を見直したときは、このフラグ名の末尾の数字を上げて全端末に配り直す。
   (function migrateCatsKoyoh() {
     try {
-      if (localStorage.getItem("koji.mig.cats_koyoh")) return;
+      if (localStorage.getItem("koji.mig.cats_koyoh2")) return;
       state.cats.length = 0;
       DEFAULT_CATS.forEach((c) => state.cats.push(c));
       save(LS.cats, state.cats);
-      localStorage.setItem("koji.mig.cats_koyoh", "1");
+      localStorage.setItem("koji.mig.cats_koyoh2", "1");
     } catch (e) {
       /* noop */
     }
