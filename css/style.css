@@ -446,49 +446,6 @@ body {
   word-break: break-all;
 }
 
-/* 送付ブロック（宛先入力＋件名＋送付ボタン） */
-.send-box {
-  margin-top: 4px;
-  padding: 12px;
-  background: var(--bg);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.send-box__field {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.send-box__label {
-  flex: 0 0 auto;
-  width: 40px;
-  font-size: 12px;
-  color: var(--text-sub);
-}
-
-.send-box__field .field__input {
-  flex: 1;
-  min-width: 0;
-}
-
-.send-box__subject {
-  flex: 1;
-  font-size: 13px;
-  word-break: break-all;
-}
-
-.send-box__note {
-  margin: 2px 0 0;
-  font-size: 11px;
-  line-height: 1.6;
-  color: var(--text-sub);
-}
-
 .send-box__status {
   margin: 0;
   padding: 8px 10px;

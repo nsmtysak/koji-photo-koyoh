@@ -241,10 +241,13 @@
     list: $("photo-list"),
     count: $("photo-count"),
     empty: $("empty-state"),
+    photoAddTop: $("photo-add-top"),
     photoAddBottom: $("photo-add-bottom"),
     clearAll: $("clear-all"),
     generatePdf: $("generate-pdf"),
     generatePdfTop: $("generate-pdf-top"),
+    sendPdf: $("send-pdf"),
+    sendPdfTop: $("send-pdf-top"),
     pdfResult: $("pdf-result"),
     // 設定
     openSettings: $("open-settings"),
@@ -279,21 +282,25 @@
     els.jobOrderNo.addEventListener("input", () => {
       state.job.orderNo = els.jobOrderNo.value;
       save(LS.job, state.job);
+      markPdfStale(); // 表紙に載る内容なので要再生成
       updateClearBtn();
     });
     els.jobName.addEventListener("input", () => {
       state.job.name = els.jobName.value;
       save(LS.job, state.job);
+      markPdfStale(); // 表紙に載る内容なので要再生成
       updateClearBtn();
     });
     els.jobCustomer.addEventListener("input", () => {
       state.job.customer = els.jobCustomer.value;
       save(LS.job, state.job);
+      markPdfStale(); // 表紙に載る内容なので要再生成
       updateClearBtn();
     });
     els.jobPlace.addEventListener("input", () => {
       state.job.place = els.jobPlace.value;
       save(LS.job, state.job);
+      markPdfStale(); // 表紙に載る内容なので要再生成
       updateClearBtn();
     });
 
@@ -729,10 +736,15 @@
     renderPhotos();
   }
 
-  // 生成済みPDFが古くなった（写真変更）→ 生成ボタンを青背景・白文字に戻す
+  // 生成済みPDFが古くなった（写真変更）→ 生成ボタンを青背景・白文字に戻し、
+  // 送付は再生成するまで押せなくする（古い内容のPDFを送らせないため）
   function markPdfStale() {
     els.generatePdf.classList.remove("btn--ghost");
     els.generatePdfTop.classList.remove("btn--ghost");
+    lastPdfFile = null;
+    syncSendBtns();
+    els.pdfResult.innerHTML = "";
+    els.pdfResult.classList.add("is-hidden");
   }
 
   function move(index, dir) {
@@ -790,6 +802,8 @@
     }
     els.pdfResult.innerHTML = "";
     els.pdfResult.classList.add("is-hidden");
+    lastPdfFile = null;
+    syncSendBtns();
 
     // 「PDF生成・プレビュー」ボタンを元の青背景に戻す
     els.generatePdf.classList.remove("btn--ghost");
@@ -896,6 +910,7 @@
         chip.addEventListener("click", () => {
           photo.category = photo.category === cat ? "" : cat;
           syncChips(chips, photo.category);
+          markPdfStale(); // 区分を変えたら要再生成（古いPDFを送らせない）
           saveSession();
         });
         chips.appendChild(chip);
@@ -925,6 +940,7 @@
     noteInput.value = photo.note || "";
     noteInput.addEventListener("input", () => {
       photo.note = noteInput.value;
+      markPdfStale(); // 自由入力を変えたら要再生成
       saveSession();
     });
     noteWrap.append(noteLabel, noteInput);
@@ -954,6 +970,9 @@
     els.generatePdfTop.disabled = total === 0;
     // 下段の「写真を選択／追加」は写真がある時だけ表示
     els.photoAddBottom.classList.toggle("is-hidden", total === 0);
+    // 写真を選び終えたら「写真を選択／追加」を白背景・青文字にする（次の操作へ誘導）
+    els.photoAddTop.classList.toggle("btn--ghost", total > 0);
+    els.photoAddBottom.classList.toggle("btn--ghost", total > 0);
     updateClearBtn();
     renderJobInfo();
 
@@ -1033,61 +1052,42 @@
     a.remove();
   }
 
-  // 送付ブロック（PDFを送る＋件名表示）を組み立てる。
-  // 宛先はメールアプリ側で入力する。件名は送付時に自動コピー。
-  function buildSendBox(file, filename, subject, body, canShareFile) {
-    const box = document.createElement("div");
-    box.className = "send-box";
+  /* ---------- 「PDFを送る」（上下の固定ボタン） ----------
+     生成したPDFを保持し、押されたら共有シートへ渡す。
+     写真や工事情報を変えたら保持を捨て、再生成するまで押せなくする。 */
+  let lastPdfFile = null;
+  let lastPdfSubject = "";
+  let lastPdfBody = "";
+  let lastCanShare = false;
 
-    // PDFを添付して送る（共有シート → メールでPDFが自動添付）。
-    // タップ時に件名をクリップボードへ自動コピー → メールの件名欄に貼り付けるだけ。
-    const shareBtn = document.createElement("button");
-    shareBtn.type = "button";
-    shareBtn.className = "btn btn--block";
-    shareBtn.textContent = canShareFile ? "PDFを送る" : "PDFを保存（ダウンロード）";
-
-    const status = document.createElement("p");
-    status.className = "send-box__status is-hidden";
-
-    shareBtn.addEventListener("click", async () => {
-      if (canShareFile && subject) {
-        try {
-          await navigator.clipboard.writeText(subject);
-        } catch (e) {
-          /* 失敗しても送付は続行 */
-        }
-        status.textContent =
-          "件名をコピーしました。メールの件名欄を長押し→ペーストで貼り付けてください。";
-        status.classList.remove("is-hidden");
-      }
-      await sharePdf(file, body);
+  function syncSendBtns() {
+    const ready = !!lastPdfFile;
+    const label = !ready || lastCanShare ? "PDFを送る" : "PDFを保存（ダウンロード）";
+    [els.sendPdf, els.sendPdfTop].forEach((b) => {
+      b.disabled = !ready;
+      b.textContent = label;
     });
+  }
 
-    // 件名（雛形＋工事名差し込み。表示＋手動コピーも可）
-    const subjRow = document.createElement("div");
-    subjRow.className = "send-box__field";
-    const subjLabel = document.createElement("span");
-    subjLabel.className = "send-box__label";
-    subjLabel.textContent = "件名";
-    const subjVal = document.createElement("span");
-    subjVal.className = "send-box__subject";
-    subjVal.textContent = subject || "（未設定）";
-    const subjCopy = document.createElement("button");
-    subjCopy.type = "button";
-    subjCopy.className = "link-btn";
-    subjCopy.textContent = "件名をコピー";
-    subjCopy.addEventListener("click", () => copyText(subject, subjCopy));
-    subjRow.append(subjLabel, subjVal, subjCopy);
+  function setSendStatus(text) {
+    const p = $("send-status");
+    if (!p) return;
+    p.textContent = text || "";
+    p.classList.toggle("is-hidden", !text);
+  }
 
-    const note = document.createElement("p");
-    note.className = "send-box__note";
-    note.textContent = canShareFile
-      ? "「PDFを送る」を押すと、PDFが添付され、本文に定型句が入り、件名が自動でコピーされます。メールアプリで宛先を入力し、件名欄に貼り付け（ペースト）してください。（本文の定型句は設定で変更できます）"
-      : "「PDFを保存」でダウンロード後、メールに添付してください。宛先はメールアプリで入力、件名は「件名をコピー」で貼り付けてください。";
-
-    // 「PDFを送る」をカード最上段に配置
-    box.append(shareBtn, status, subjRow, note);
-    return box;
+  async function sendPdfNow() {
+    if (!lastPdfFile) return;
+    // 件名はメールアプリ側で貼り付けてもらう（iOSは共有で件名を渡せないため）
+    if (lastCanShare && lastPdfSubject) {
+      try {
+        await navigator.clipboard.writeText(lastPdfSubject);
+        setSendStatus("件名をコピーしました");
+      } catch (e) {
+        /* 失敗しても送付は続行 */
+      }
+    }
+    await sharePdf(lastPdfFile, lastPdfBody);
   }
 
   async function generatePdf() {
@@ -1141,11 +1141,18 @@
       const canShareFile =
         navigator.canShare && navigator.canShare({ files: [file] });
 
-      // 結果UI（送付ブロックのみ。プレビュー/生成/クリアは下部の固定ボタン）
+      // 生成したPDFを保持し、上下の「PDFを送る」を押せるようにする
+      lastPdfFile = file;
+      lastPdfSubject = buildSubject();
+      lastPdfBody = buildBody();
+      lastCanShare = !!canShareFile;
+      syncSendBtns();
+
+      // 結果UI（ファイル名・ページ数のみ。件名や手順の説明は置かない）
       els.pdfResult.innerHTML = "";
-      const subject = buildSubject();
-      const body = buildBody();
-      const sendBox = buildSendBox(file, filename, subject, body, canShareFile);
+      const status = document.createElement("p");
+      status.id = "send-status";
+      status.className = "send-box__status is-hidden";
 
       const info = document.createElement("p");
       info.className = "pdf-result__info";
@@ -1153,7 +1160,7 @@
       info.textContent =
         filename + "（表紙＋写真" + state.photos.length + "枚 / 全" + pages + "ページ）";
 
-      els.pdfResult.append(sendBox, info);
+      els.pdfResult.append(status, info);
       els.pdfResult.classList.remove("is-hidden");
 
       // 生成後に自動でPDFをプレビュー表示する
@@ -1186,9 +1193,12 @@
   els.clearAll.addEventListener("click", clearAll);
   els.generatePdf.addEventListener("click", generatePdf);
   els.generatePdfTop.addEventListener("click", generatePdf);
+  els.sendPdf.addEventListener("click", sendPdfNow);
+  els.sendPdfTop.addEventListener("click", sendPdfNow);
 
   initJobInfo();
   initSettings();
+  syncSendBtns();
   renderPhotos();
   restoreSession(); // 再読み込み時に作業中の写真を復元
   console.log("[koji] 工事写真台帳 起動（Phase 4）");
